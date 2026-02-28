@@ -14,6 +14,8 @@ pub enum Input {
 
 #[derive(Default)]
 pub struct InputManager {
+    pub peer: Peer,
+
     /// For how long up or down button (pad) is held.
     held_for: u32,
 

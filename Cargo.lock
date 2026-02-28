@@ -4,9 +4,9 @@ version = 4
 
 [[package]]
 name = "firefly-rust"
-version = "0.12.0"
+version = "0.13.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "f7a53467e1820accdcc4cf0496f305f4d6203f01a970464febb29996dd800ae4"
+checksum = "1d4f96def5b5622a3ecab4f4748128d7918eee67952ef9b1b744127ab6b0be90"
 
 [[package]]
 name = "firefly-ui"

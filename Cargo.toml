@@ -5,4 +5,4 @@ edition = "2024"
 rust-version = "1.91.0"
 
 [dependencies]
-firefly-rust = { version = "0.12.0", default-features = false }
+firefly-rust = { version = "0.13.0", default-features = false }
