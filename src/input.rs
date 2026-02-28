@@ -1,6 +1,6 @@
 use firefly_rust::*;
 
-#[derive(Eq, PartialEq, Copy, Clone)]
+#[derive(Eq, PartialEq, Copy, Clone, Default)]
 pub enum Input {
     Up,
     Down,
@@ -8,12 +8,12 @@ pub enum Input {
     Right,
     Select,
     Back,
+    #[default]
     None,
 }
 
+#[derive(Default)]
 pub struct InputManager {
-    /// If there is a new input on this frame.
-    dirty: bool,
     /// For how long up or down button (pad) is held.
     held_for: u32,
 
@@ -29,45 +29,33 @@ pub struct InputManager {
 impl InputManager {
     #[must_use]
     pub fn new() -> Self {
-        Self {
-            old_buttons: Buttons::default(),
-            old_dpad: DPad4::default(),
-            dirty: true,
-            held_for: 0,
-            input: Input::None,
-            pressed: false,
-        }
+        Self::default()
     }
 
+    /// Read the input.
+    pub fn update(&mut self) {
+        let btns = self.update_buttons();
+        let pad = self.update_dpad();
+        self.input = if btns == Input::None { pad } else { btns }
+    }
+
+    /// Get the input read at the last update.
     #[must_use]
     pub const fn get(&self) -> Input {
         self.input
     }
 
+    /// If true, the Select is pressed and held.
+    ///
+    /// This is used to animate the pressing down on UI buttons and cursor.
     #[must_use]
     pub const fn pressed(&self) -> bool {
         self.pressed
     }
 
-    /// If there is a new input on this frame.
-    #[must_use]
-    pub fn dirty(&self) -> bool {
-        self.dirty
-    }
-
     #[must_use]
     pub fn held_for(&self) -> u32 {
         self.held_for
-    }
-
-    pub fn update(&mut self) {
-        let btns = self.update_buttons();
-        let pad = self.update_dpad();
-        let dirty = btns != Input::None || pad != Input::None;
-        if dirty {
-            self.dirty = dirty;
-        }
-        self.input = if btns == Input::None { pad } else { btns }
     }
 
     fn update_buttons(&mut self) -> Input {
@@ -88,7 +76,9 @@ impl InputManager {
         let new_dpad = read_pad(Peer::COMBINED).unwrap_or_default().as_dpad4();
         let mut dpad_pressed = new_dpad.just_pressed(self.old_dpad);
 
-        // If a direction button is held, track for how long.
+        // If a direction on the pad is held for long enough,
+        // step in this direction on every frame
+        // instead of only just when it's pressed.
         if new_dpad == DPad4::None {
             self.held_for = 0;
         } else {
