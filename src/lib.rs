@@ -1,5 +1,7 @@
 #![deny(clippy::pedantic)]
 #![allow(clippy::wildcard_imports)]
+#![no_std]
+
 mod bg;
 mod cursor;
 mod input;
