@@ -55,9 +55,26 @@ impl InputManager {
         self.pressed
     }
 
+    /// The vertical pixel offset for the cursor.
+    ///
+    /// It is used to slightly jitter the cursor when reaching the end of the item list
+    /// to indicate that there are no more items to show.
+    ///
+    /// The `hitting_wall` arg indicate if the cursor is at the start
+    /// or at the end of the list.
     #[must_use]
-    pub fn held_for(&self) -> u32 {
-        self.held_for
+    pub const fn jitter(&self, hitting_wall: bool) -> i8 {
+        if !hitting_wall {
+            return 0;
+        }
+        if self.held_for < 30 || self.held_for % 30 <= 5 {
+            return 0;
+        }
+        match self.old_dpad {
+            DPad4::Left | DPad4::Up => -1,
+            DPad4::Right | DPad4::Down => 1,
+            DPad4::None => 0,
+        }
     }
 
     fn update_buttons(&mut self) -> Input {
@@ -86,7 +103,7 @@ impl InputManager {
         } else {
             self.held_for += 1;
         }
-        if self.held_for > 30 {
+        if self.held_for > 30 && self.held_for.is_multiple_of(4) {
             dpad_pressed = new_dpad;
         }
 

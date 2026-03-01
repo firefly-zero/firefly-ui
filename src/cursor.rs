@@ -5,9 +5,10 @@ const BOX_MR: i32 = BOX_ML;
 const BOX_MT: i32 = 16;
 const LINE_M: i32 = 4;
 
-pub fn draw_cursor(pos: u32, theme: Theme, font: &Font, pressed: bool) {
+pub fn draw_cursor(pos: u32, theme: Theme, font: &Font, pressed: bool, jitter: i8) {
     let line_h = i32::from(font.char_height()) + LINE_M;
-    let y = BOX_MT + pos.cast_signed() * line_h + 1;
+    let jitter = if pressed { 0 } else { jitter };
+    let y = BOX_MT + pos.cast_signed() * line_h + 1 + i32::from(jitter);
     let mut point = Point::new(BOX_ML, y);
     let bbox = Size::new(WIDTH - BOX_ML - BOX_MR, line_h);
     let corner = Size::new(4, 4);
