@@ -3,6 +3,12 @@ name = "firefly-ui"
 version = "0.1.0"
 edition = "2024"
 rust-version = "1.91.0"
+authors = ["Firefly Zero team"]
+description = "UI helpers and components for Firefly Zero system apps"
+repository = "https://github.com/firefly-zero/firefly-ui"
+license = "MIT"
+keywords = ["gamedev", "firefly-zero"]
+categories = ["game-development", "no-std", "rendering", "wasm"]
 
 [dependencies]
 firefly-rust = { version = "0.13.0", default-features = false }
