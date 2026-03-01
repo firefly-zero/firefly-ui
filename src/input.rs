@@ -17,15 +17,31 @@ pub struct InputManager {
     pub peer: Peer,
 
     /// For how long up or down button (pad) is held.
+    ///
+    /// Used for automatic scroll when holding up or down on the pad
+    /// and for jittering the cursor at the list boundaries.
     held_for: u32,
 
     /// The state of buttons on the previous frame.
     old_buttons: Buttons,
+
     /// The state of direction buttons on the previous frame.
     old_dpad: DPad4,
+
     /// The cached input value from the last update.
     input: Input,
+
+    /// True if the select is held down.
+    ///
+    /// Used to animate button press on the cursor.
     pressed: bool,
+
+    /// Ignore button presses.
+    ///
+    /// Activated when the cursor is moved,
+    /// deactivated when all buttons are released.
+    /// Allows to cancel the button press by moving the cursor.
+    ignore_buttons: bool,
 }
 
 impl InputManager {
@@ -79,14 +95,24 @@ impl InputManager {
 
     fn update_buttons(&mut self) -> Input {
         let new_buttons = read_buttons(Peer::COMBINED);
-        self.pressed = new_buttons.s || new_buttons.e;
         let released = new_buttons.just_released(&self.old_buttons);
         self.old_buttons = new_buttons;
+
+        if self.ignore_buttons {
+            if !new_buttons.any() {
+                self.ignore_buttons = false;
+            }
+            self.pressed = false;
+            return Input::None;
+        }
+        self.pressed = new_buttons.s || new_buttons.e;
+
         if released.s || released.e {
             Input::Select
         } else if released.w || released.menu {
             Input::Back
         } else {
+            self.ignore_buttons = false;
             Input::None
         }
     }
@@ -102,6 +128,7 @@ impl InputManager {
             self.held_for = 0;
         } else {
             self.held_for += 1;
+            self.ignore_buttons = true;
         }
         if self.held_for > 30 && self.held_for.is_multiple_of(4) {
             dpad_pressed = new_dpad;
