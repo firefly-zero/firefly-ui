@@ -3,11 +3,20 @@ use firefly_rust::*;
 const BOX_ML: i32 = 16;
 const BOX_MR: i32 = BOX_ML;
 const BOX_MT: i32 = 16;
-const LINE_M: i32 = 4;
+const BOX_Y: i32 = BOX_MT;
 
 const CURSOR_ML: i32 = 4;
+const LINE_M: i32 = 4;
 const CURSOR_X: i32 = BOX_ML + CURSOR_ML;
 
+/// Draw a cursor selector around the given line of text.
+///
+/// Non-transparent, must be rendered before the text on the given line.
+///
+/// Args:
+///
+/// * `pressed`: the select button is pressed.
+/// * `jitter`: offset for the Y coordinate. Used to make the cursor jitter at borders.
 pub fn draw_cursor(pos: u32, theme: Theme, font: &Font, pressed: bool, jitter: i8) {
     let line_h = i32::from(font.char_height()) + LINE_M;
     let jitter = if pressed { 0 } else { jitter };
@@ -33,11 +42,12 @@ pub fn draw_cursor(pos: u32, theme: Theme, font: &Font, pressed: bool, jitter: i
     draw_rounded_rect(point, bbox, corner, style);
 }
 
-pub fn draw_switch(idx: i32, is_on: bool, pressed: bool, font: &Font, theme: Theme) {
+/// Draw an on or off boolean switch on the right on the given line.
+pub fn draw_switch(pos: i32, is_on: bool, pressed: bool, font: &Font, theme: Theme) {
     let font_h = i32::from(font.char_height());
     let x = WIDTH - CURSOR_X - font_h * 2;
     let line_h = font_h + LINE_M;
-    let y = CURSOR_X + idx * line_h - 1;
+    let y = CURSOR_X + pos * line_h - 1;
     let mut point = Point::new(x, y);
     if pressed {
         point.x += 1;
@@ -60,4 +70,17 @@ pub fn draw_switch(idx: i32, is_on: bool, pressed: bool, font: &Font, theme: The
     let size = Size::new(font_h * 2, font_h);
     let corner = Size::new(font_h / 2, font_h / 2);
     draw_rounded_rect(point, size, corner, style);
+}
+
+/// Draw centered text on the first line.
+pub fn draw_title(text: &str, pressed: bool, font: &Font, color: Color) {
+    let mut point = Point::new(
+        (WIDTH - font.line_width_utf8(text).cast_signed()) / 2,
+        BOX_Y + i32::from(font.char_height()),
+    );
+    if pressed {
+        point.x += 1;
+        point.y += 1;
+    }
+    draw_text(text, font, point, color);
 }
