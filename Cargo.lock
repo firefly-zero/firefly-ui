@@ -10,7 +10,7 @@ checksum = "e2474c5bd54b8460a5200ccb3adeb254b092bc46e257ce038d28b925e82e9f66"
 
 [[package]]
 name = "firefly-ui"
-version = "0.1.0"
+version = "0.2.0"
 dependencies = [
  "firefly-rust",
 ]
