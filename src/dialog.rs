@@ -1,5 +1,7 @@
 use firefly_rust::*;
 
+const LINE_M: i32 = 4;
+
 #[expect(clippy::cast_possible_truncation, clippy::cast_possible_wrap)]
 pub fn draw_dialog(
     theme: Theme,
@@ -10,17 +12,19 @@ pub fn draw_dialog(
     pressed: bool,
 ) {
     // Calculate the box size and margins.
-    let max_chars = if options.len() == 2 {
+    let horiz = options.len() == 2 && options[0].len() <= 6 && options[1].len() <= 6;
+    let max_chars = if horiz {
         options[0].len() + options[1].len()
     } else {
         options.iter().map(|t| t.len()).max().unwrap_or_default()
     };
     let max_chars = max_chars.max(prompt.len());
-    let width = i32::from(font.char_width()) * max_chars as i32;
+    let width = i32::from(font.char_width()) * max_chars as i32 + 8;
     let left = (WIDTH - width) / 2;
 
     let n_lines = options.len() + 1;
-    let height = (i32::from(font.char_height()) + 2) * n_lines as i32;
+    let line_height = i32::from(font.char_height()) + LINE_M;
+    let height = line_height * n_lines as i32 + LINE_M;
     let top = (HEIGHT - height) / 2;
 
     // Draw the box.
@@ -43,12 +47,31 @@ pub fn draw_dialog(
     );
 
     // Draw the prompt message.
-    let line_height = i32::from(font.char_height());
     let point = Point::new(
         (WIDTH - font.line_width_utf8(prompt).cast_signed()) / 2,
-        top + line_height,
+        top + line_height - LINE_M,
     );
     draw_text(prompt, font, point, theme.accent);
+
+    // Draw two options on the same line (typically no/yes, back/forward, etc.).
+    if horiz {
+        let text = options[0];
+        let offset = ((WIDTH / 2 - left) - font.line_width_utf8(text).cast_signed()) / 2;
+        let point = Point::new(left + offset, top + line_height * 2);
+        draw_text(text, font, point, theme.primary);
+        if cursor == 0 {
+            draw_cursor(point, WIDTH / 2 - offset, theme, font, pressed);
+        }
+
+        let text = options[1];
+        let offset = ((WIDTH / 2 - left) - font.line_width_utf8(text).cast_signed()) / 2;
+        let point = Point::new(WIDTH - offset, top + line_height * 2);
+        draw_text(text, font, point, theme.primary);
+        if cursor > 0 {
+            draw_cursor(point, WIDTH / 2 + offset, theme, font, pressed);
+        }
+        return;
+    }
 
     // Draw the options
     match options.len() {
@@ -57,30 +80,17 @@ pub fn draw_dialog(
         // One option, make it centered.
         1 => {
             let text = options[0];
-            let point = Point::new(
+            let point = Point::new(left + 3, top + line_height + 1);
+            draw_cursor(point, width - 6, theme, font, pressed);
+            let mut point = Point::new(
                 (WIDTH - font.line_width_utf8(text).cast_signed()) / 2,
-                top + line_height * 2,
+                top + line_height * 2 - LINE_M,
             );
-            draw_text(text, font, point, theme.primary);
-            draw_cursor(point, width, theme, font, pressed);
-        }
-        // Two options, draw both on the same line.
-        2 => {
-            let text = options[0];
-            let offset = ((WIDTH / 2 - left) - font.line_width_utf8(text).cast_signed()) / 2;
-            let point = Point::new(left + offset, top + line_height * 2);
-            draw_text(text, font, point, theme.primary);
-            if cursor == 0 {
-                draw_cursor(point, WIDTH / 2 - offset, theme, font, pressed);
+            if pressed {
+                point.x += 1;
+                point.y += 1;
             }
-
-            let text = options[1];
-            let offset = ((WIDTH / 2 - left) - font.line_width_utf8(text).cast_signed()) / 2;
-            let point = Point::new(WIDTH - offset, top + line_height * 2);
             draw_text(text, font, point, theme.primary);
-            if cursor > 0 {
-                draw_cursor(point, WIDTH / 2 + offset, theme, font, pressed);
-            }
         }
         // Many options, draw them in one column.
         _ => {

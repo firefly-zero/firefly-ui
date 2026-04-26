@@ -18,7 +18,7 @@ pub fn draw_bg_grid(theme: Theme) {
     }
 }
 
-fn draw_bg_box(theme: Theme) {
+pub fn draw_bg_box(theme: Theme) {
     const MARGIN: i32 = 12;
 
     let size = Size::new(WIDTH - MARGIN * 2, HEIGHT - MARGIN * 2);
