@@ -5,7 +5,7 @@ pub fn draw_bg(theme: Theme) {
     draw_bg_box(theme);
 }
 
-fn draw_bg_grid(theme: Theme) {
+pub fn draw_bg_grid(theme: Theme) {
     const CELL_SIZE: i32 = 8;
 
     clear_screen(theme.bg);
