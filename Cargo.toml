@@ -11,4 +11,7 @@ keywords = ["gamedev", "firefly-zero"]
 categories = ["game-development", "no-std", "rendering", "wasm"]
 
 [dependencies]
-firefly-rust = "0.13.1"
+firefly-rust = "0.13.2"
+
+[dev-dependencies]
+firefly-rust = { version = "0.13.2", features = ["talc"] }
