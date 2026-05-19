@@ -113,11 +113,16 @@ pub fn draw_dialog(
         // Many options, draw them in one column.
         _ => {
             for (text, i) in options.iter().zip(0..) {
-                let point = Point::new(left + 4, top + line_height * 2);
-                draw_text(text, font, point, theme.primary);
-                if i == cursor {
-                    draw_cursor(point, width, theme, font, pressed);
+                let mut point = Point::new(left + 4, top + line_height * (i + 2) - 4);
+                if i == i32::from(cursor) {
+                    let cursor_point = Point::new(point.x - 2, point.y - 8);
+                    if pressed {
+                        point.x += 1;
+                        point.y += 1;
+                    }
+                    draw_cursor(cursor_point, width - 5, theme, font, pressed);
                 }
+                draw_text(text, font, point, theme.primary);
             }
         }
     }
