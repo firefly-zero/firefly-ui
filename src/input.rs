@@ -26,7 +26,12 @@ pub struct InputManager {
     old_buttons: Buttons,
 
     /// The state of direction buttons on the previous frame.
-    old_dpad: DPad4,
+    ///
+    /// `None` if the pad was not touched,
+    /// `Some(Dpad4::None)` if the pad is touched in the dead zone.
+    old_dpad: Option<DPad4>,
+    /// True if the pad was initially touched in the dead zone (the pad middle).
+    from_deadzone: bool,
 
     /// The cached input value from the last update.
     input: Input,
@@ -87,9 +92,9 @@ impl InputManager {
             return 0;
         }
         match self.old_dpad {
-            DPad4::Left | DPad4::Up => -1,
-            DPad4::Right | DPad4::Down => 1,
-            DPad4::None => 0,
+            Some(DPad4::Left | DPad4::Up) => -1,
+            Some(DPad4::Right | DPad4::Down) => 1,
+            None | Some(DPad4::None) => 0,
         }
     }
 
@@ -118,8 +123,41 @@ impl InputManager {
     }
 
     fn update_dpad(&mut self) -> Input {
-        let new_dpad = read_pad(Peer::COMBINED).unwrap_or_default().as_dpad4();
-        let mut dpad_pressed = new_dpad.just_pressed(self.old_dpad);
+        // This is a bit convoluted because we want to support all 3
+        // common ways how people use the touchpad:
+        //
+        // 1. Touching the side where they want the cursor move to.
+        //    This is what we could handle by simply converting Pad to DPad4
+        //    and checking that the pad was not touched before.
+        // 2. Touching one side of the pad and sliding the finger all the way
+        //    to the other side (aka "swiping"). Since there is no universal
+        //    agreement on where the screen should move on swipe
+        //    ("natural scroll" vs "reverse scrolling"), we pick the one
+        //    that doesn't conflict with the previous option.
+        //    We could implement it by reading only the first touch
+        //    after the pad is touched and ignore the finger moving around,
+        //    including passing the dead zone.
+        // 3. Touching the pad in the middle (we call it "dead zone" in this file
+        //    because that's the zone reported by DPad4 as None) and swiping the finger
+        //    to the desired side. We implement it by reading the pad when it leaves
+        //    the dead zone.
+        //
+        // So, the universal solution for all three is to read the pad
+        // when it's the first touched or first leaves the dead zone
+        // and ignore the rest until it's released and touched again.
+        let new_dpad = read_pad(Peer::COMBINED).map(|p| p.as_dpad4());
+        let mut was_pressed = self.old_dpad.is_some();
+        if let Some(dpad) = new_dpad
+            && !was_pressed
+        {
+            self.from_deadzone = dpad == DPad4::None;
+        }
+        if self.from_deadzone {
+            was_pressed = self.old_dpad != Some(DPad4::None);
+        }
+        self.old_dpad = new_dpad;
+        let new_dpad = new_dpad.unwrap_or_default();
+        let mut dpad_pressed = if was_pressed { DPad4::None } else { new_dpad };
 
         // If a direction on the pad is held for long enough,
         // step in this direction on every frame
@@ -134,7 +172,6 @@ impl InputManager {
             dpad_pressed = new_dpad;
         }
 
-        self.old_dpad = new_dpad;
         match dpad_pressed {
             DPad4::None => Input::None,
             DPad4::Left => Input::Left,
