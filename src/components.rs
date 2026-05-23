@@ -17,7 +17,7 @@ const CURSOR_X: i32 = BOX_ML + CURSOR_ML;
 ///
 /// * `pressed`: the select button is pressed.
 /// * `jitter`: offset for the Y coordinate. Used to make the cursor jitter at borders.
-pub fn draw_cursor(pos: u32, theme: Theme, font: &Font, pressed: bool, jitter: i8) {
+pub fn draw_cursor<F: Font>(pos: u32, theme: Theme, font: &F, pressed: bool, jitter: i8) {
     let line_h = i32::from(font.char_height()) + LINE_M;
     let jitter = if pressed { 0 } else { jitter };
     let y = BOX_MT + pos.cast_signed() * line_h + 1 + i32::from(jitter);
@@ -43,7 +43,7 @@ pub fn draw_cursor(pos: u32, theme: Theme, font: &Font, pressed: bool, jitter: i
 }
 
 /// Draw an on or off boolean switch on the right on the given line.
-pub fn draw_switch(pos: i32, is_on: bool, pressed: bool, font: &Font, theme: Theme) {
+pub fn draw_switch<F: Font>(pos: i32, is_on: bool, pressed: bool, font: &F, theme: Theme) {
     let font_h = i32::from(font.char_height());
     let x = WIDTH - CURSOR_X - font_h * 2;
     let line_h = font_h + LINE_M;
@@ -73,7 +73,7 @@ pub fn draw_switch(pos: i32, is_on: bool, pressed: bool, font: &Font, theme: The
 }
 
 /// Draw centered text on the first line.
-pub fn draw_title(text: &str, pressed: bool, font: &Font, color: Color) {
+pub fn draw_title<F: Font>(text: &str, pressed: bool, font: &F, color: Color) {
     let mut point = Point::new(
         (WIDTH - font.line_width_utf8(text).cast_signed()) / 2,
         BOX_Y + i32::from(font.char_height()),

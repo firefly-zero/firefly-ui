@@ -1,9 +1,9 @@
 use firefly_rust::*;
 
 #[expect(clippy::cast_possible_truncation, clippy::cast_possible_wrap)]
-pub fn draw_dialog(
+pub fn draw_dialog<F: Font>(
     theme: Theme,
-    font: &Font<'_>,
+    font: &F,
     prompt: &str,
     options: &[&str],
     cursor: u8,
@@ -128,7 +128,7 @@ pub fn draw_dialog(
     }
 }
 
-fn draw_cursor(mut point: Point, width: i32, theme: Theme, font: &Font, pressed: bool) {
+fn draw_cursor<F: Font>(mut point: Point, width: i32, theme: Theme, font: &F, pressed: bool) {
     let bbox = Size::new(width, i32::from(font.char_height()) + 4);
     let corner = Size::new(4, 4);
 

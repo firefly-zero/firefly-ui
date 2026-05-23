@@ -7,7 +7,7 @@ use firefly_ui::*;
 static mut STATE: MaybeUninit<State> = MaybeUninit::uninit();
 
 pub struct State {
-    font: FileBuf,
+    font: FontBuf,
     btns: Buttons,
     screen: u8,
 }
@@ -23,7 +23,7 @@ fn get_state() -> &'static mut State {
 extern "C" fn boot() {
     let font = load_file_buf("ascii").unwrap();
     let state = State {
-        font,
+        font: font.into(),
         btns: Buttons::default(),
         screen: 0,
     };
@@ -55,16 +55,16 @@ extern "C" fn render() {
             draw_title(
                 "what does the fox say???",
                 state.btns.any(),
-                &state.font.as_font(),
+                &state.font,
                 theme.accent,
             );
-            draw_cursor(1, theme, &state.font.as_font(), state.btns.any(), 0);
-            draw_switch(1, true, state.btns.any(), &state.font.as_font(), theme);
-            draw_switch(2, false, state.btns.any(), &state.font.as_font(), theme);
+            draw_cursor(1, theme, &state.font, state.btns.any(), 0);
+            draw_switch(1, true, state.btns.any(), &state.font, theme);
+            draw_switch(2, false, state.btns.any(), &state.font, theme);
         }
         1 => draw_dialog(
             theme,
-            &state.font.as_font(),
+            &state.font,
             "sorry man, something went wrong",
             &["okay"],
             0,
@@ -72,7 +72,7 @@ extern "C" fn render() {
         ),
         2 => draw_dialog(
             theme,
-            &state.font.as_font(),
+            &state.font,
             "huh?",
             &["are you talking to me?????"],
             0,
@@ -80,7 +80,7 @@ extern "C" fn render() {
         ),
         3 => draw_dialog(
             theme,
-            &state.font.as_font(),
+            &state.font,
             "wanna dance?",
             &["no", "yes"],
             if state.btns.n { 1 } else { 0 },
@@ -88,7 +88,7 @@ extern "C" fn render() {
         ),
         4 => draw_dialog(
             theme,
-            &state.font.as_font(),
+            &state.font,
             "sure???",
             &["no", "yes", "maybe"],
             if state.btns.n { 1 } else { 0 },
