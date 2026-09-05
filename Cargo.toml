@@ -1,6 +1,6 @@
 [package]
 name = "firefly-ui"
-version = "0.3.2"
+version = "0.3.3"
 edition = "2024"
 rust-version = "1.95.0"
 authors = ["Firefly Zero team"]
@@ -11,7 +11,7 @@ keywords = ["gamedev", "firefly-zero"]
 categories = ["game-development", "no-std", "rendering", "wasm"]
 
 [dependencies]
-firefly-rust = "0.15.0"
+firefly-rust = "0"
 
 [dev-dependencies]
-firefly-rust = { version = "0.15.0", features = ["talc"] }
+firefly-rust = { version = "0", features = ["talc"] }
